@@ -15,7 +15,7 @@
   - victor_emanuel@discente.ufg.br
 
 ## Descrição do Trabalho
-Este trabalho apresenta o desenvolvimento de um sistema integrado de auxílio em operações de resgate, combinando a utilização de um hexápode e um drone. O sistema utiliza a navegação autônoma baseada na detecção de April Tags pelo drone DJI Tello, juntamente com a locomoção precisa do hexápode, proporcionando uma solução integrada para explorar e mapear ambientes complexos. O objetivo é melhorar a eficiência e a segurança em operações de resgate em ambientes perigosos e de difícil acesso. Foram realizados testes que demonstraram alta precisão na detecção de tags e eficiência na navegação em diferentes condições.
+Este trabalho apresenta o desenvolvimento de um sistema integrado de auxílio em operações de resgate, combinando a utilização de um robô hexápode e um drone. O sistema utiliza a navegação autônoma baseada na detecção de April Tags pelo drone DJI Tello, juntamente com a locomoção precisa do hexápode, proporcionando uma solução integrada para explorar e mapear ambientes complexos. O objetivo é melhorar a eficiência e a segurança em operações de resgate em ambientes perigosos e de difícil acesso. Foram realizados testes que demonstraram alta precisão na detecção de tags e eficiência na navegação em diferentes condições.
 
 ## Estrutura do Repositório
 - **Drone:** Códigos do drone.
