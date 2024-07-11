@@ -5,7 +5,10 @@ import time
 from djitellopy import Tello
 
 # Definindo o tamanho da largura (w) e altura (h) da imagem
-w, h = 360, 240
+w, h = 500, 500
+
+# Definindo o intervalo de áreas para detecção da April Tag
+fbRange = [1500, 3000]
 
 # Inicializando o detector de April Tags
 options = apriltag.DetectorOptions(families="tag36h11")
@@ -47,23 +50,60 @@ def determine_action(cX, cY, width, height):
     actions = [
         ["VIRAR ANTI-HORÁRIO", "SUBIR", "SUBIR", "SUBIR", "VIRAR HORÁRIO"],
         ["VIRAR ANTI-HORÁRIO", "SUBIR", "SUBIR", "SUBIR", "VIRAR HORÁRIO"],
-        ["VIRAR ANTI-HORÁRIO", "OK NÃO MEXER", "OK NÃO MEXER", "OK NÃO MEXER", "VIRAR HORÁRIO"],
-        ["VIRAR ANTI-HORÁRIO", "OK NÃO MEXER", "OK NÃO MEXER", "OK NÃO MEXER", "VIRAR HORÁRIO"],
+        ["VIRAR ANTI-HORÁRIO", "CENTRALIZADO", "CENTRALIZADO", "CENTRALIZADO", "VIRAR HORÁRIO"],
+        ["VIRAR ANTI-HORÁRIO", "CENTRALIZADO", "CENTRALIZADO", "CENTRALIZADO", "VIRAR HORÁRIO"],
         ["VIRAR ANTI-HORÁRIO", "DESCER", "DESCER", "DESCER", "VIRAR HORÁRIO"]
     ]
 
     return actions[row][col]
 
-# Função para executar a ação
-def execute_action(action, me):
-    if action == "SUBIR":
-        me.move_up(15)
-    elif action == "DESCER":
-        me.move_down(15)
+# Função para ajustar a orientação do drone com base na posição da April Tag
+def turn_drone(action):
+    yaw = 0
+    if action == "VIRAR ANTI-HORÁRIO":
+        yaw = -30
     elif action == "VIRAR HORÁRIO":
-        me.rotate_clockwise(20)
-    elif action == "VIRAR ANTI-HORÁRIO":
-        me.rotate_counter_clockwise(20)
+        yaw = 30
+    return yaw
+
+# Função para determinar a subida/descida do drone com base na ação
+def vertical_movement(action):
+    up_down = 0
+    if action == "SUBIR":
+        up_down = 20
+    elif action == "DESCER":
+        up_down = -20
+    return up_down
+
+# Função para rastrear a April Tag
+def track_april_tag(info, w, h):
+    area = info[1]
+    cX, cY = info[0]
+    section_width = w // 5
+
+    # Movimento para frente e para trás
+    fb = 0
+    if area > fbRange[0] and area < fbRange[1]:
+        fb = 0
+    elif area > fbRange[1]:
+        fb = -30
+    elif area < fbRange[0] and area != 0:
+        fb = 30
+    print("Frente/Trás:", fb)
+
+    # Determinar a ação com base na posição
+    action = determine_action(cX, cY, w, h)
+    print(f"Ação: {action}")
+
+    # Virando com base na posição
+    yaw = turn_drone(action)
+    print(f"Yaw: {yaw}")
+
+    # Subida/descida com base na posição
+    up_down = vertical_movement(action)
+    print(f"Subida/Descida: {up_down}")
+
+    return fb, yaw, up_down
 
 # Função para desenhar a grade na imagem
 def draw_grid(frame, width, height):
@@ -81,6 +121,11 @@ me = Tello()
 me.connect()
 print(me.get_battery())
 me.streamon()
+me.takeoff()
+time.sleep(2.0)
+# Alterando a altura inicial
+# me.send_rc_control(0, 0, 24, 0)
+# time.sleep(1.0)
 
 # Loop principal para detecção e rastreamento contínuos
 while True:
@@ -104,19 +149,12 @@ while True:
             cv2.line(img_bgr_resized, ptC, ptD, (0, 255, 0), 2)
             cv2.line(img_bgr_resized, ptD, ptA, (0, 255, 0), 2)
             cv2.circle(img_bgr_resized, (cX, cY), 5, (0, 0, 255), -1)
-            
-            action = determine_action(cX, cY, w, h)
-            print(f"Ação: {action}")
-            execute_action(action, me)
-            print()  # Linha em branco para separar as saídas
 
-            # Simulando a posição real (por exemplo, centro da imagem)
-            real_position = (w // 2, h // 2)
-            position_error = np.sqrt((cX - real_position[0]) ** 2 + (cY - real_position[1]) ** 2)
-            total_position_error += position_error
-
+            fb, yaw, up_down = track_april_tag([april_tag_info, area], w, h)
+            me.send_rc_control(0, fb, up_down, yaw)
         else:
-            false_positives += 1
+            # Para o drone se a April Tag não for detectada
+            me.send_rc_control(0, 0, 0, 0)
 
         processing_time = time.time() - start_time
         total_processing_time += processing_time
@@ -124,6 +162,7 @@ while True:
         draw_grid(img_bgr_resized, w, h)
         cv2.imshow("Imagem", img_bgr_resized)
         if cv2.waitKey(1) & 0xFF == ord('q'):
+            me.land()
             break
 
     except Exception as e:
@@ -144,4 +183,3 @@ print(f"Taxa de Detecção: {detection_rate:.2f}%")
 print(f"Taxa de Falsos Positivos: {false_positive_rate:.2f}%")
 print(f"Erro Médio de Posição: {average_position_error:.2f} pixels")
 print(f"Tempo Médio de Processamento: {average_processing_time:.4f} segundos")
-
