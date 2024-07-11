@@ -19,7 +19,7 @@ Este trabalho apresenta o desenvolvimento de um sistema integrado de auxílio em
 
 ## Estrutura do Repositório
 - **Drone:** Códigos do drone.
-- **Hexapod:** Códigos do robô aranha hexapode.
+- **Hexapod:** Códigos do robô aranha hexápode.
 - **Relatório:** Documento técnico descrevendo os objetivos, metodologias, resultados e conclusões do projeto.
 - **Slides:** Slides dos pitches semanais
 
