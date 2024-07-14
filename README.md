@@ -1,4 +1,4 @@
-# Adakdyn: Desenvolvimento de um Sistema Integrado de Auxílio em Operações de Resgate Utilizando Hexápode e Drone
+# Arakdyn: Desenvolvimento de um Sistema Integrado de Auxílio em Operações de Resgate Utilizando Hexápode e Drone
 
 ## Integrantes
 - **Fabrycio Leite Nakano Almada**
